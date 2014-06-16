@@ -51,7 +51,6 @@ function User(roomId, apiKey, sessionId, token){
     self.session.publish( self.publisher );
     self.layout();
     $("#messageInput").removeAttr( "disabled" );
-    $('#messageInput').focus();
   });
 
   // add event listeners to dom
@@ -94,6 +93,7 @@ function User(roomId, apiKey, sessionId, token){
   $(".container").on("transitionend webkitTransitionEnd oTransitionEnd otransitionend", function(){
     self.layout();
   });
+  $('.container').css('right', '-300px');
   window.onresize = this.layout();
   this.printCommands(); // welcome users into the room
 }

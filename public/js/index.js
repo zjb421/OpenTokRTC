@@ -1,7 +1,10 @@
 $("#roomName").focus();
+$("form").submit(false);
 
 function goToRoom(){
+  console.log("goToRoom");  
   var roomName = $("#roomName").val().trim();
+  console.log(roomName);  
   if(roomName.length <= 0 ) return;
   $("#roomContainer").fadeOut('slow');
   window.location = "/" + roomName;

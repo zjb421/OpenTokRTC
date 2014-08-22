@@ -26,6 +26,8 @@ build/Release
 
 # Users Environment Variables
 .lock-wscript
-*.swp
+**.swp
+**.swo
+**.swm
 **/.sass-cache/
 .DS_Store

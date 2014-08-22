@@ -120,3 +120,36 @@ $light-gray : #999;
 $chatRoomWidth: 400px;
 $roomTitleHeight: 75px;
 $roomTitleSize: 25px;
+@mixin info-circle($width:20px, $bordersize:3px, $colorstyle:dark) {
+  $bgcolor: $blue_extra_dark;
+  $bordercolor: $blue_lt;
+  $arrow_fill: #fff;
+  @if $colorstyle == dark {
+    $bgcolor: $blue_extra_dark;
+    $bordercolor: $blue_lt;
+  }
+  @else if $colorstyle == light {
+    $bgcolor: $blue_lt;
+    $bordercolor: $blue_lt2;
+  }
+  @else if $colorstyle == white {
+    $bgcolor: #fff;
+    $bordercolor: $blue_lt2;
+    $arrow_fill: $blue_med;
+  }
+  position: absolute;
+  width: $width;
+  height: $width;
+  border-radius: $width / 2 + $bordersize;
+  background-color: $bgcolor;
+  border: solid $bordersize $bordercolor;
+  cursor: pointer;
+  img {
+    width: $width * 0.5;
+    height: $width * 0.5;
+    position: absolute;
+    top: $width * 0.25;
+    left: $width * 0.25;
+  }
+  
+}

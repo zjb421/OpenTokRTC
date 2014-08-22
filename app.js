@@ -88,7 +88,7 @@ app.get('/archive/:archiveId/:roomId', function(req, res, next) {
       }
       // NOTE: see quirk note below. applies for this property as well.
       payload.archive = false;
-
+      console.log(payload);
       return res.json(500, payload);
     }
 

@@ -21,14 +21,17 @@ Room.prototype = {
     });
     $("#recordButton").click(function(){
       $(this).toggleClass("selected");
-      var actionVerb;
+      var actionVerb, nextAction;
       if($(this).hasClass("selected")){
         self.triggerActivity("record","start");
         actionVerb = "started";
+        nextAction = "Stop";
       } else{ 
         self.triggerActivity("record","stop");
         actionVerb = "stopped";
+        nextAction = "Start";
       }
+      $("#recordButton").data('tooltip').options.title=nextAction+" Recording";
     });
     $(document.body).on("click","#filtersList li button",function(){
       $("#filtersList li button").removeClass("selected");
@@ -68,12 +71,14 @@ Room.prototype = {
       var data = JSON.parse( event.data );
       switch(event.type){
         case "signal:archive":
-          var actionVerb;
+          var actionVerb, newAction;
           if(data.action === "start"){
             actionVerb = "started";
+            newAction = "Stop";
             $(".controlOption[data-activity=record]").addClass('selected');
           } else{
             actionVerb = "stopped";
+            newAction = "Start";
             $(".controlOption[data-activity=record]").removeClass('selected');
           }
           _this.archiveId = data.archiveId;

@@ -10,10 +10,10 @@ body {
 
 
 h1, h2, h3 {
-  font-family:'AvantExtraLight';
+  font-family:$avantFont;
+  font-weight: lighter;
   b {
-    font-family: $avantFont;
-    font-weight: 700;  
+    font-family: $avantFontBold;
   }
 }
 
@@ -49,6 +49,9 @@ b {
   font-weight: 700;
 }
 
+a {
+  color: #003F5F;
+}
 p {
   font-size: 14px;
   line-height: 16px;

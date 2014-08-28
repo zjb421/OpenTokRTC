@@ -7,11 +7,10 @@
   <script src="//static.opentok.com/webrtc/v2.2/js/opentok.js"></script>
   <script src="/vendors/handlebars.js" type="text/javascript"></script>
   <script src="/js/layoutContainer.js" type="text/javascript"></script>
-  <script src="/vendors/OpenTokChattr/jquery.event.ue.js" type="text/javascript"></script>
-  <script src="/vendors/OpenTokChattr/jquery.udraggable.js" type="text/javascript"></script>
-  <script src="/vendors/OpenTokChattr/OpenTokChattr.js" type="text/javascript"></script>
-  <script src="/vendors/OpenTokChattr/jquery.event.ue.js" type="text/javascript"></script>
-  <link rel="stylesheet" href="/vendors/OpenTokChattr/style.css" />
+  <script src="/vendors/jquery.event.ue.js" type="text/javascript"></script>
+  <script src="/vendors/jquery.udraggable.js" type="text/javascript"></script>
+  <script src="/js/OpenTokChattr.js" type="text/javascript"></script>
+  <link rel="stylesheet" href="/css/OpenTokChattr.css" />
 </head>
 <body>
 
@@ -33,7 +32,7 @@
       <div id="filtersButton" data-tooltip-title = "Filters" class="controlOption option popover-dismiss" data-toggle="popover" data-placement="top" data-html="true" title="Filters" data-content="<ul id='filtersList'><li><button data-value='Sepia' type='button'>Sepia</button></li><li><button data-value='Invert' type='button'>Inverted</button></li><li><button data-value='Grayscale' type='button'>Grayscale</button></li><li><button data-value='Blur' type='button'>Blur</button></li><li><button data-value='None' type='button'>None</button></li></ul>"></div>
       <div id="roomLinkButton" data-tooltip-title="Share Room Link!" title="Share Room Link!" class="controlOption option popover-dismiss" data-placement="top"  data-activity="roomLink">
       </div>
-      <div id="recordButton" data-tooltip-title="Record" class="controlOption option"data-activity="record">
+      <div id="recordButton" data-tooltip-title="Start Recording" class="controlOption option"data-activity="record">
         &nbsp;
       </div>
       <div id="chatButton" data-tooltip-title="Text Chat" class="controlOption option selected no-after" data-activity="chat">
@@ -77,7 +76,7 @@
  });
   room = new Room("<%= rid %>", session, "<%= token %>", chattr);
   var startX = $(window).width()-10-$("#chattr").width();
-  var startY = $(window).height()-50-$("#chattr").height();
+  var startY = $(window).height()-56-$("#chattr").height();
   $("#chattr").css("left",startX);
   $("#chattr").css("top", startY);
   $('#filtersButton').popover();

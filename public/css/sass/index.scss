@@ -26,7 +26,12 @@ body{
 body, input{
   font-family: $avantFont;
   color:#ffffff;
-}/*
+}
+h5{
+  font-family: 'Muli';
+  font-weight: 300;
+}
+/*
 h1, h1 b{
   font-family: $avantFont;
   font-size:60px;
@@ -45,13 +50,21 @@ h1 b{
 #roomContainer{
   text-align:center;
 }
-
+#store_icons a#playStoreButton{
+  margin-right: 20px;
+}
 #actionItem{
   width: 565px;
   text-align:left;
   margin:auto;
 }
-
+#submitButton{
+  color: white;
+  &:hover{
+    color: white;
+    text-decoration: none;
+  }
+}
 input{
   vertical-align: bottom;
 }

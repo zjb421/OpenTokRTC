@@ -5,11 +5,12 @@ function Room(roomId, session, token, chattr){
   this.chattr = chattr;
   this.filterData = {};
   this.unseenCount = 0;
+  this.initialized = false;
+  this.recording = false;
   this.initOT();
   this.init();
 }
 Room.prototype = {
-  _this: this,
   constructor: Room,
   init: function(){
     var self = this;
@@ -50,6 +51,7 @@ Room.prototype = {
     session.connect(this.token, function(error){
       var publisher = OT.initPublisher( "<%= apiKey %>", "myPublisher", {width:"100%", height:"100%"} );
       session.publish( publisher );
+      setTimeout(function(){_this.initialized = true;}, 2000);
     });
     session.on("streamCreated", function(event){
       var streamConnectionId = event.stream.connection.connectionId;
@@ -67,9 +69,32 @@ Room.prototype = {
       _this.removeStream(event.stream.connection.connectionId);
       _this.layout();
     });
+    session.on("connectionCreated", function(event){
+      console.log("CONNECTION CREATED YAY");
+      if(_this.initialized){
+        console.log("ABOUT TO SEND SIGNAL");
+        var dataToSend = {"filterData": _this.filterData};
+        if(_this.archiveId && $(".controlOption[data-activity=record]").hasClass("selected")){
+          dataToSend.archiveId = _this.archiveId;
+        }
+        _this.sendSignal("initialize", dataToSend, event.connection);
+      }
+    });
     session.on("signal", function(event){
       var data = JSON.parse( event.data );
       switch(event.type){
+        case "signal:initialize":
+          if(!_this.initialized){
+            _this.filterData = data.filterData;
+            _this.applyAllFilters();
+            if(data.archiveId){
+              _this.archiveId = data.archiveId;
+              $(".controlOption[data-activity=record]").addClass('selected');
+              $("#recordButton").data('tooltip').options.title="Stop Recording";
+            }
+            _this.initialized = true;
+          }
+          break;
         case "signal:archive":
           var actionVerb, newAction;
           if(data.action === "start"){
@@ -81,12 +106,16 @@ Room.prototype = {
             newAction = "Start";
             $(".controlOption[data-activity=record]").removeClass('selected');
           }
+          $("#recordButton").data('tooltip').options.title=newAction+" Recording";
           _this.archiveId = data.archiveId;
           var archiveUrl = window.location.origin +"/archive/"+_this.archiveId+"/"+_this.roomId;
           console.log("ARCHIVING");
-          _this.chattr.printMessage({"type": "generalUpdate", "data":{"text":"Archiving for this session has "+actionVerb+". View it here: <a href = '"+ archiveUrl+"'>"+archiveUrl+"</a>"}});
+          var msg = {"type": "generalUpdate", "data":{"text":"Archiving for this session has "+actionVerb+". View it here: <a href = '"+ archiveUrl+"'>"+archiveUrl+"</a>"}};
+          _this.chattr.messages.push(msg);
+          _this.chattr.printMessage(msg);
           break;
         case "signal:filter":
+          _this.filterData[data.cid] = data.filter;
           _this.applyClassFilter(data.filter, ".stream"+data.cid);
           break;
         case "signal:chat":
@@ -125,6 +154,10 @@ Room.prototype = {
           console.log(response);
           if(response.id){
             self.archiveId = response.id;
+            if(action == "start")
+              self.archiving = true;
+            else
+              self.archiving = false;
             var signalData = {name: self.name, archiveId: response.id, action: action};
             self.sendSignal("archive",signalData);
           }
@@ -142,6 +175,12 @@ Room.prototype = {
   errorSignal: function(error){
     if(error){
       console.log("signal error: " + error.reason);
+    }
+  },
+  applyAllFilters: function(){
+    console.log("FILTER DATA");
+    for(cid in this.filterData){
+      this.applyClassFilter(this.filterData[cid], ".stream"+cid);
     }
   },
   applyClassFilter: function(prop, selector){

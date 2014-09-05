@@ -16,6 +16,10 @@ Room.prototype = {
     var self = this;
     window.onresize = self.layout;
     $("#chatButton").click(function(){
+      var startX = $(window).width()-10-$("#chattr").width();
+      var startY = $(window).height()-56-$("#chattr").height();
+      $("#chattr").css("left",startX);
+      $("#chattr").css("top", startY);
       $("#chattr").toggle();
       self.unseenCount = 0;
       $("#chatButton").addClass("no-after");
@@ -156,7 +160,6 @@ Room.prototype = {
   },
   userStreamTemplate : Handlebars.compile( $("#userStreamTemplate").html() ),
   triggerActivity : function(activity, action){
-    console.log("starting activity");
     switch(activity){
       case "record":
         var data = {action: action, roomId: this.roomId}; // room Id needed for room servation credentials on server
@@ -165,8 +168,6 @@ Room.prototype = {
         }
         var self = this;
         $.post("/archive/"+this.session.sessionId, data, function(response){
-          console.log("trying to start archive");
-          console.log(response);
           if(response.id){
             self.archiveId = response.id;
             if(action == "start")
@@ -201,7 +202,6 @@ Room.prototype = {
     if(prop){
       $(selector).removeClass( "Blur Sepia Grayscale Invert" );
       $(selector).addClass( prop );
-      console.log("applyclassfilter..."+prop);
     }
   }
 

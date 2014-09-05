@@ -100,6 +100,16 @@ h1,h2,h3,h4,h5,h6,p{
         right: 0;
         padding-top: 5px;
       }
+      #mailButton{
+        width: 33px;
+        height: 28px;
+        right: 178px;
+        background-image: url('../img/icon_Mail.png');
+        background-repeat:no-repeat;
+        &:hover{
+          background-image: url('../img/icon_Mail_hover.png');
+        }
+      }
       #filtersButton{
         width: 28px;
         height: 24px;

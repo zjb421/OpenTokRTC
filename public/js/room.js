@@ -16,6 +16,10 @@ Room.prototype = {
     var self = this;
     window.onresize = self.layout;
     $("#chatButton").click(function(){
+      var startX = $(window).width()-10-$("#chattr").width();
+      var startY = $(window).height()-56-$("#chattr").height();
+      $("#chattr").css("left",startX);
+      $("#chattr").css("top", startY);
       $("#chattr").toggle();
       self.unseenCount = 0;
       $("#chatButton").addClass("no-after");
@@ -37,7 +41,6 @@ Room.prototype = {
     $(document.body).on("click","#filtersList li button",function(){
       $("#filtersList li button").removeClass("selected");
       var prop = $(this).data('value');
-      console.log(prop);
       self.applyClassFilter( prop, "#myPublisher" );
       $(this).addClass("selected");
       self.sendSignal( "filter", {cid: self.session.connection.connectionId, filter: prop });
@@ -45,7 +48,6 @@ Room.prototype = {
     });
   },
   initOT: function(){
-    console.log(this);
     var _this = this;
     var session = this.session;
     session.connect(this.token, function(error){
@@ -55,10 +57,8 @@ Room.prototype = {
     });
     session.on("streamCreated", function(event){
       var streamConnectionId = event.stream.connection.connectionId;
-      console.log("STREAM CREATED");
       // create new div container for stream, subscribe, apply filter
       var divId = "stream" + streamConnectionId;
-      console.log(_this);
       $("#streams_container").append(
          _this.userStreamTemplate({ id: divId, connectionId: streamConnectionId }) );
       var subscribers = [];
@@ -70,9 +70,7 @@ Room.prototype = {
       _this.layout();
     });
     session.on("connectionCreated", function(event){
-      console.log("CONNECTION CREATED YAY");
       if(_this.initialized){
-        console.log("ABOUT TO SEND SIGNAL");
         var dataToSend = {"filterData": _this.filterData};
         if(_this.archiveId && $(".controlOption[data-activity=record]").hasClass("selected")){
           dataToSend.archiveId = _this.archiveId;
@@ -109,7 +107,6 @@ Room.prototype = {
           $("#recordButton").data('tooltip').options.title=newAction+" Recording";
           _this.archiveId = data.archiveId;
           var archiveUrl = window.location.origin +"/archive/"+_this.archiveId+"/"+_this.roomId;
-          console.log("ARCHIVING");
           var msg = {"type": "generalUpdate", "data":{"text":"Archiving for this session has "+actionVerb+". View it here: <a href = '"+ archiveUrl+"'>"+archiveUrl+"</a>"}};
           _this.chattr.messages.push(msg);
           _this.chattr.printMessage(msg);
@@ -141,7 +138,6 @@ Room.prototype = {
   },
   userStreamTemplate : Handlebars.compile( $("#userStreamTemplate").html() ),
   triggerActivity : function(activity, action){
-    console.log("starting activity");
     switch(activity){
       case "record":
         var data = {action: action, roomId: this.roomId}; // room Id needed for room servation credentials on server
@@ -150,8 +146,6 @@ Room.prototype = {
         }
         var self = this;
         $.post("/archive/"+this.session.sessionId, data, function(response){
-          console.log("trying to start archive");
-          console.log(response);
           if(response.id){
             self.archiveId = response.id;
             if(action == "start")
@@ -178,7 +172,6 @@ Room.prototype = {
     }
   },
   applyAllFilters: function(){
-    console.log("FILTER DATA");
     for(cid in this.filterData){
       this.applyClassFilter(this.filterData[cid], ".stream"+cid);
     }
@@ -187,7 +180,6 @@ Room.prototype = {
     if(prop){
       $(selector).removeClass( "Blur Sepia Grayscale Invert" );
       $(selector).addClass( prop );
-      console.log("applyclassfilter..."+prop);
     }
   }
 

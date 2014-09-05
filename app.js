@@ -144,7 +144,7 @@ app.get("/:rid", function( req, res ){
         req.sessionId = reply;
         sendRoomResponse(OTKEY, req.sessionId, ot.generateToken(req.sessionId, {role: 'moderator'}));
       }else{
-        ot.createSession( req.sessionProperties || {} , function(err, session){
+        ot.createSession( req.sessionProperties || {mediaMode: 'routed'} , function(err, session){
           if (err) {
             var payload;
             if (config.web.env === 'development') {

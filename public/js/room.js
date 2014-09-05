@@ -55,6 +55,11 @@ Room.prototype = {
       session.publish( publisher );
       setTimeout(function(){_this.initialized = true;}, 2000);
     });
+    session.on("sessionDisconnected", function(event){
+      var msg = (event.reason === "forceDisconnected") ? "Someone in the room found you offensive and removed you. Please evaluate your behavior" : "You have been disconnected! Please try again";
+      alert(msg);
+      window.location = "/";
+    });
     session.on("streamCreated", function(event){
       var streamConnectionId = event.stream.connection.connectionId;
       // create new div container for stream, subscribe, apply filter
@@ -63,6 +68,23 @@ Room.prototype = {
          _this.userStreamTemplate({ id: divId, connectionId: streamConnectionId }) );
       var subscribers = [];
       subscribers[ streamConnectionId ] = session.subscribe( event.stream, divId , {width:"100%", height:"100%"} );
+      var divId$ = $("."+divId);
+      divId$.mouseenter(function(){
+        $(this).find('.flagUser').show();
+      });
+      divId$.mouseleave(function(){
+        $(this).find('.flagUser').hide();
+      });
+
+      // mark user as offensive
+      divId$.find('.flagUser').click(function(){
+        var streamConnection = $(this).data('streamconnection');
+        if(confirm("Is this user being inappropriate? If so, click confirm to remove user")){
+          _this.applyClassFilter("Blur", "."+streamConnection);
+          _this.session.forceDisconnect( streamConnection.split("stream")[1] );
+        }
+      }); 
+
       _this.layout();
     });
     session.on("streamDestroyed", function(event){

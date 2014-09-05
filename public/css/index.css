@@ -292,7 +292,8 @@ h1 b{
   margin: auto; }
 
 #submitButton {
-  color: white; }
+  color: white;
+  font-family: 'AvantGardeGothicITCW01X'; }
   #submitButton:hover {
     color: white;
     text-decoration: none; }

@@ -94,6 +94,14 @@ h1, h2, h3, h4, h5, h6, p {
       position: absolute;
       right: 0;
       padding-top: 5px; }
+    #controlsContainer .controlsBody .optionContainer #mailButton {
+      width: 33px;
+      height: 28px;
+      right: 178px;
+      background-image: url("../img/icon_Mail.png");
+      background-repeat: no-repeat; }
+      #controlsContainer .controlsBody .optionContainer #mailButton:hover {
+        background-image: url("../img/icon_Mail_hover.png"); }
     #controlsContainer .controlsBody .optionContainer #filtersButton {
       width: 28px;
       height: 24px;

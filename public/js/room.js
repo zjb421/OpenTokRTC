@@ -37,7 +37,6 @@ Room.prototype = {
     $(document.body).on("click","#filtersList li button",function(){
       $("#filtersList li button").removeClass("selected");
       var prop = $(this).data('value');
-      console.log(prop);
       self.applyClassFilter( prop, "#myPublisher" );
       $(this).addClass("selected");
       self.sendSignal( "filter", {cid: self.session.connection.connectionId, filter: prop });
@@ -45,7 +44,6 @@ Room.prototype = {
     });
   },
   initOT: function(){
-    console.log(this);
     var _this = this;
     var session = this.session;
     session.connect(this.token, function(error){
@@ -53,16 +51,36 @@ Room.prototype = {
       session.publish( publisher );
       setTimeout(function(){_this.initialized = true;}, 2000);
     });
+    session.on("sessionDisconnected", function(event){
+      var msg = (event.reason === "forceDisconnected") ? "Someone in the room found you offensive and removed you. Please evaluate your behavior" : "You have been disconnected! Please try again";
+      alert(msg);
+      window.location = "/";
+    });
     session.on("streamCreated", function(event){
       var streamConnectionId = event.stream.connection.connectionId;
-      console.log("STREAM CREATED");
       // create new div container for stream, subscribe, apply filter
       var divId = "stream" + streamConnectionId;
-      console.log(_this);
       $("#streams_container").append(
          _this.userStreamTemplate({ id: divId, connectionId: streamConnectionId }) );
       var subscribers = [];
       subscribers[ streamConnectionId ] = session.subscribe( event.stream, divId , {width:"100%", height:"100%"} );
+      var divId$ = $("."+divId);
+      divId$.mouseenter(function(){
+        $(this).find('.flagUser').show();
+      });
+      divId$.mouseleave(function(){
+        $(this).find('.flagUser').hide();
+      });
+
+      // mark user as offensive
+      divId$.find('.flagUser').click(function(){
+        var streamConnection = $(this).data('streamconnection');
+        if(confirm("Is this user being inappropriate? If so, click confirm to remove user")){
+          _this.applyClassFilter("Blur", "."+streamConnection);
+          _this.session.forceDisconnect( streamConnection.split("stream")[1] );
+        }
+      }); 
+
       _this.layout();
     });
     session.on("streamDestroyed", function(event){
@@ -70,9 +88,7 @@ Room.prototype = {
       _this.layout();
     });
     session.on("connectionCreated", function(event){
-      console.log("CONNECTION CREATED YAY");
       if(_this.initialized){
-        console.log("ABOUT TO SEND SIGNAL");
         var dataToSend = {"filterData": _this.filterData};
         if(_this.archiveId && $(".controlOption[data-activity=record]").hasClass("selected")){
           dataToSend.archiveId = _this.archiveId;
@@ -109,7 +125,6 @@ Room.prototype = {
           $("#recordButton").data('tooltip').options.title=newAction+" Recording";
           _this.archiveId = data.archiveId;
           var archiveUrl = window.location.origin +"/archive/"+_this.archiveId+"/"+_this.roomId;
-          console.log("ARCHIVING");
           var msg = {"type": "generalUpdate", "data":{"text":"Archiving for this session has "+actionVerb+". View it here: <a href = '"+ archiveUrl+"'>"+archiveUrl+"</a>"}};
           _this.chattr.messages.push(msg);
           _this.chattr.printMessage(msg);
@@ -178,7 +193,6 @@ Room.prototype = {
     }
   },
   applyAllFilters: function(){
-    console.log("FILTER DATA");
     for(cid in this.filterData){
       this.applyClassFilter(this.filterData[cid], ".stream"+cid);
     }

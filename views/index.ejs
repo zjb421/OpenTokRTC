@@ -4,7 +4,6 @@
   <title>WebRTC Demo</title>
   <% include _header %>
   <% include _mobile %>
-  <link rel="stylesheet" href="/css/index.css" />
 </head>
 <body>
   <div id="logoContainer"></div>
@@ -41,7 +40,8 @@
     </div>
   </div>
 
-
+  <% include _vendor %>
+  <link rel="stylesheet" href="/css/index.css" />
   <script src="/smartbanner/jquery.smartbanner.js"></script>
   <script src="/js/index.js" type="text/javascript"></script>
   <% include _analytics %>

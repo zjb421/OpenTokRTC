@@ -12,6 +12,14 @@ function OpenTokChattr(targetElem, roomId,session, options){
   this.targetElem.find("#chattr #roomId").html(this.roomId); 
   $("#chatInput").keyup(_this.checkKeyPress);
   this.uiActions();
+  // Every 10 seconds update the times for everyone
+  setInterval(function () {
+    $('.chat p').each(function () {
+      var date = $(this).attr('data-date');
+      var timeDiff = _this._timeDifference(new Date(date), new Date());
+      $(this).attr('title',timeDiff);
+    });
+  }, 10000);
 }
 OpenTokChattr.prototype = {
   _this:this,
@@ -32,30 +40,28 @@ OpenTokChattr.prototype = {
             break;
           case "signal:updateUsers":
             _this.users = signalData;
-            break;
-          case "signal:newUser":
-            //_this.messages.push({"type": "newUser", data: signalData});
-            //_this.printMessage({"type": "newUser", data:signalData});
+            _this.initialized = true;
             break;
           case "signal:name":
-            var nameData = {"oldName": _this.getNickname(signalData[0]), "newName": signalData[1]};
-            _this.users[signalData[0]] = signalData[1];
+            var oldName = _this.getNickname(signalData.from);
+            var nameData = {"oldName": oldName, "newName": signalData.newName}; 
+            _this.users[signalData.from] = signalData.newName;
             _this.printMessage({"type": "status", data:nameData});
             break;
           case "signal:help":
             _this.printMessage({"type": "help", data:signalData});
             break;
-          case "signal:list":
-            _this.printMessage({"type": "list", data:signalData});
-            break;
           case "signal:generalUpdate":
             _this.printMessage({"type": "generalUpdate", data:signalData});
+            break;
+          case "signal:selfUpdate":
+            _this.printMessage({"type": "selfUpdate", data:signalData});
             break;
           case "signal:pastMessages":
             if(!_this.initialized){
               _this.messages = signalData.messages;
               _this.printMessages();
-              _this.initialized = true;}
+            }
             break;
         }
       },
@@ -64,7 +70,6 @@ OpenTokChattr.prototype = {
           var connectionId = event.connection.connectionId;
           _this.sendSignal("pastMessages", {"messages":_this.messages}, event.connection);
           _this.users[connectionId] = _this._defaultNickname(connectionId);
-          //NAME is coming out as undefined
           _this.signalUpdateUsers();
         }
         _this.printMessage({"type": "newUser", data: event.connection.connectionId});
@@ -138,32 +143,12 @@ OpenTokChattr.prototype = {
       case "chat":
         var time = this._timeDifference(new Date(data.date),new Date());
         var nickname=data.name+": ";
-        var message=data.text;
+        var message=decodeURI(data.text).replace(/</g, '&lt;').replace(/>/g, '&gt;');
         var cls = _this.isMe(data.from)?"from-me":"from-others";
-        html="<li class='"+cls+"'><label>"+nickname+"</label><p title='"+time+"'>"+message+"</p>";
+        html="<li class='chat "+cls+"'><label>"+nickname+"</label><p data-date='"+data.date+"' title='"+time+"'>"+message+"</p>";
         break;
       case "status":
         html = "<li class = 'status'><p><span class='oldName'>"+data.oldName+"</span> is now known as <span class='newName'>"+data.newName+"</span></p></li>";
-        break;
-      case "help":
-        if(_this.isMe(data.from)){
-          html+= "<li class = 'status help'>";
-          html+= "<p>Type <span>/name your_name</span> to change your display name</p>";
-          html+= "<p>Type <span>/list</span> to see a list of users in the room</p>";
-          html+= "<p class='last'>Type <span>/help</span> to see a list of commands</p>";
-          html+="</li>";
-        }
-        break;
-      case "list":
-        if(_this.isMe(data.from)){
-          html+="<li class = 'status list'><p>Users in this room right now</p>";
-          for(var i=0; i<data.users.length; i++){
-            if(i<data.users.length-1)
-              html+="<p>- "+data.users[i]+"</p>";
-            else
-              html+="<p class='last'>- "+data.users[i]+"</p>";
-          }
-        }
         break;
       case "newUser":
         if(!_this.isMe(data.from)||!data){
@@ -179,6 +164,11 @@ OpenTokChattr.prototype = {
         break;
       case "generalUpdate":
         html = "<li class = 'status'><p>"+data.text+"</p></li>";
+        break;
+      case "selfUpdate":
+        if(_this.isMe(data.from)){
+          html+="<li class = 'status'>"+data.text+"</li>";
+        }
         break;
     }
     $("#messages").append(html);
@@ -196,10 +186,7 @@ OpenTokChattr.prototype = {
     switch(parts[0]){
       case "/name":
       case "/nick":
-       _this.sendSignal("name", [_this.session.connection.connectionId, parts[1]]);
-//        var oldName = _this.users[_this.session.connection.connectionId];
-//        _this.setName(parts[1]);
-//        _this.sendNameSignal(oldName,parts[1]);
+        _this.sendChangeNameSignal(parts[1]);
         break;
       case "/help":
         _this.sendHelpSignal();
@@ -213,37 +200,53 @@ OpenTokChattr.prototype = {
     $("#chatInput").val("");
   },
   sendHelpSignal: function(){
-    var data = {from: _this.session.connection.connectionId};
-    _this.sendSignal("help", data);
+    var msg = "<p>Type <span>/name your_name</span> to change your display name</p> \
+              <p>Type <span>/list</span> to see a list of users in the room</p> \
+              <p class='last'>Type <span>/help</span> to see a list of commands</p>";
+    _this.sendSelfUpdate(msg);
   },
   sendChat: function(msg){
     var date = new Date();
-    var data = {name: _this.getNickname(_this.session.connection.connectionId), text: msg, date: date, from: _this.session.connection.connectionId};
+    var data = {name: _this.getNickname(_this.session.connection.connectionId), text: encodeURI(msg), date: date, from: _this.session.connection.connectionId};
     _this.sendSignal("chat", data);
   },
   sendGeneralUpdate: function(msg){
     _this.sendSignal("generalUpdate", {"text": msg});
   },
-  sendNameSignal: function(oldName, newName){
-    var data = {oldName: oldName, newName: newName};
+  sendSelfUpdate: function(msg){
+    var data = {from: _this.session.connection.connectionId, text: msg};
+    _this.sendSignal("selfUpdate", data);
+  },
+  sendChangeNameSignal: function(newName){
+    for(var k in _this.users){
+      if(_this.users[k]===newName){
+        var msg = "<p>User <span>"+newName+"</span> already exists. Please choose another name.</p>";
+        _this.sendSelfUpdate(msg);
+        return;
+      }
+    }
+    var data = {from: _this.session.connection.connectionId, newName: newName};
     _this.sendSignal("name", data);
   },
   signalUpdateUsers: function(){
     _this.sendSignal("updateUsers", _this.users);
   },
   sendListSignal: function(){
-    var list = [];
+    var names = [];
     for(var k in _this.users){
-      list.push(_this.users[k])
+      names.push(_this.users[k]);
     }
-    _this.sendSignal("list",{"users":list, "from":_this.session.connection.connectionId});
+    var html = "<p class='userList'>Users in this room right now</p>";
+    for(var i = 0; i<names.length; i++){  
+      if(i<names.length-1)
+        html+="<p class='userList'>- "+names[i]+"</p>";
+      else
+        html+="<p class='userList last'>- "+names[i]+"</p>";
+    }
+    _this.sendSelfUpdate(html);
   },
   getNickname: function(connectionId){
     return _this.users[connectionId] || _this._defaultNickname(connectionId);
-//  code to return "me" for messages sent by myself
-//    if(!_this.isMe(connectionId))
-//      return _this.users[connectionId];
-//    return "me ("+_this.users[connectionId]+")";
   },
   isMe: function(connectionId){
     return connectionId===_this.session.connection.connectionId;
@@ -257,25 +260,20 @@ OpenTokChattr.prototype = {
 
   _timeDifference: function(d1,d2){
     var seconds = (d2.getTime()-d1.getTime())/1000;
-    if(seconds>=60 && seconds<3600)
+    if(seconds>=60 && seconds<120)
+      return "1 minute ago";
+    else if(seconds>=120 && seconds<3600)
       return parseInt(seconds/60,10)+" minutes ago";
-    else if (seconds>=3600)
+    else if(seconds>=3600 && seconds<7200)
+      return "1 hour ago";
+    else if (seconds>=7200)
       return parseInt(seconds/3600,10)+" hours ago";
-    else if (seconds>=1)
-      return parseInt(seconds,10)+" seconds ago";
+    else if (seconds>=10)
+      return parseInt(seconds/60,10)+" seconds ago";
     else
       return "Just now";
   },
   _defaultNickname: function(connectionId){
     return "Guest-"+connectionId.substring( connectionId.length - 8, connectionId.length )
   }
-/*
-  _compareConnectionByCreation: function(a,b) {
-    if (Date.parse(creationTime)h)
-       return -1;
-    if (a.last_nom > b.last_nom)
-      return 1;
-    return 0;
-  }
-*/
 }

@@ -25,7 +25,6 @@ OpenTokChattr.prototype = {
   _this:this,
   constructor: OpenTokChattr,
   initOpenTok: function(){
-    OT.setLogLevel(5);
     _this.session.on({
       sessionConnected: function(sessionConnectEvent){
         _this.setName(_this._defaultNickname(_this.session.connection.connectionId));

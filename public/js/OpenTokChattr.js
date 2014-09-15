@@ -9,11 +9,11 @@ function OpenTokChattr(targetElem, roomId,session, options){
   this.initialized = false;
   this.initOpenTok();
   this.templates = {};
-  _this.initChattrTemplates();
-  _this.targetElem.append(Handlebars.compile(_this.templates.base));
-  _this.targetElem.find("#chattr #roomId").html(_this.roomId); 
+  this.initChattrTemplates();
+  this.targetElem.append(Handlebars.compile(this.templates.base));
+  this.targetElem.find("#chattr #roomId").html(this.roomId); 
   $("#chatInput").keyup(_this.checkKeyPress);
-  _this.uiActions();
+  this.uiActions();
   // Every 10 seconds update the times for everyone
   setInterval(function () {
     $('.chat p').each(function () {

@@ -3,7 +3,7 @@ $("form").submit(false);
 
 function goToRoom(){
   console.log("goToRoom");  
-  var roomName = $("#roomName").val().trim();
+  var roomName = $.trim($("#roomName").val());
   console.log(roomName);  
   if(roomName.length <= 0 ) return;
   $("#roomContainer").fadeOut('slow');

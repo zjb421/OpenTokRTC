@@ -187,7 +187,7 @@ OpenTokChattr.prototype = {
     if(code !== 13) {
      return;
     } 
-    var text = $("#chatInput").val().trim();
+    var text = $.trim($("#chatInput").val());
     if(text.length===0)
        return;
     var parts = text.split(" ");

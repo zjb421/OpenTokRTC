@@ -16,10 +16,12 @@ Room.prototype = {
     var self = this;
     window.onresize = self.layout;
     $("#chatButton").click(function(){
-      var rightValue = $("#chattr").css("right") == "-300px" ? "0px" : "-300px";
-      $('#chattr').css('right', rightValue);
-      var containerRightValue = $('.container').css("right") == "0px" ? "300px" : "0px";
-      $('.container').css('right', containerRightValue);
+      $(".container").toggleClass("chatEnabled");
+      $("#chattr").toggleClass("chatEnabled");
+      $('#chatInput').focus();
+      $('.container').on('transitioned webkitTransitionEnd', function(e){
+        self.layout();
+      });
       self.unseenCount = 0;
       $("#chatButton").addClass("no-after");
     });
@@ -137,7 +139,7 @@ Room.prototype = {
           _this.applyClassFilter(data.filter, ".stream"+data.cid);
           break;
         case "signal:chat":
-          if($("#chattr").is(":hidden")){
+          if(!($("#chatButton").hasClass('selected'))){
             _this.unseenCount+=1;
             $("#chatButton").attr("data-unseen-count", _this.unseenCount);
             $("#chatButton").removeClass("no-after");

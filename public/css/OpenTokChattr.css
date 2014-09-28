@@ -44,6 +44,26 @@ ol, ul {
   border: solid 1px #555;
   overflow: visible;
   box-shadow: 2px 2px 3px 2px rgba(0, 0, 0, 0.2);
+  transition: all 0.5s;
+  -webkit-transition: all 0.5s; 
+}
+#chattr.chatEnabled{
+  width: 300px;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0px;
+  z-index: 1;
+  border: solid 1px #555;
+  overflow: visible;
+  box-shadow: 2px 2px 3px 2px rgba(0, 0, 0, 0.2);
+  transition: all 0.5s;
+  -webkit-transition: all 0.5s; 
+}
+#relative_wrapper{
+  width:100%;
+  height:100%;
+  position: relative;
 }
 #chattr .chat-header{
   position: relative;
@@ -51,7 +71,6 @@ ol, ul {
   width: 100%;
   height: 40px;
   background-color: #43879E;
-  cursor: move;
 }
 #chattr .chat-header > div{
   position: absolute;
@@ -77,46 +96,35 @@ ol, ul {
   font-family: "AvantGardeGothicITCW01X";
   font-weight: 200;
 }
-#chattr .chat-header .btn-close{
-  width: 14px;
-  height: 12px;
-  display: inline-block;
-  right: 10px;
-  position: absolute;
-  top: 14px;
-  background: url('../img/x.png');
-  cursor: pointer;
-}
 #chattr .inner-chat{
-  position: relative;
+  position: absolute;
   left: 0;
-  width: 300px;
-  height: 334px;
+  width: 100%;
+  top: 40px;
+  bottom: 50px;
   overflow: auto;
   background-color: #333;
   font-family: 'Muli', sans-serif;
 }
 #chattr .chat-input-wrapper{
   padding: 5px;
-  background-color: #ff0000;
-  background-color: #747474;
-  background-image: -webkit-linear-gradient(#747474, #363636);
-  background-image: linear-gradient(#747474, #363636);
+  background-color: #363636;
   position: absolute;
   bottom: 0px;
-  width: 330px;
-  height: 40px;
+  width: 300px;
+  height: 50px;
+  box-sizing: border-box;
 }
 #chattr .chat-input-wrapper #chatInput{
-  width: 250px;
-  height: 24px;
+  height: 40px;
   font-size: 16px;
   padding: 5px 10px;
   border: solid 1px;
   border-radius: 0px;
-  width: 300px;
+  width: 100%;
   box-shadow: inset 2px 2px 3px 2px rgba(0, 0, 0, 0.2);
   border-radius: 15px;
+  box-sizing: border-box;
 }
 #chattr .inner-chat p#displayHelp{
   border-radius: 8px;

@@ -116,7 +116,7 @@
 <script src="/js/room.js" type="text/javascript"></script>
 <script type="text/javascript">
   var session = OT.initSession( "<%= apiKey %>", "<%= sid %>" );
-  chattr = new OpenTokChattr(".container","<%= rid %>",session,
+  chattr = new OpenTokChattr("body","<%= rid %>",session,
  {"draggable": true,
   "startPosition":{
     x: startX,
@@ -130,8 +130,6 @@
   room = new Room("<%= rid %>", session, "<%= token %>", chattr);
   var startX = $(window).width()-10-$("#chattr").width();
   var startY = $(window).height()-56-$("#chattr").height();
-  $("#chattr").css("left",startX);
-  $("#chattr").css("top", startY);
   $('#filtersButton').popover();
   $(".controlOption").each(function(){
     $(this).tooltip({

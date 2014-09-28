@@ -106,11 +106,6 @@ OpenTokChattr.prototype = {
       } else{
         $("#chattr .chat-header .btn-close").hide();
       }
-      if(this.options.draggable){
-        $("#chattr").udraggable({
-          handle: "#chat_header",
-        });
-      }
     }
   },
   signalError: function(error){

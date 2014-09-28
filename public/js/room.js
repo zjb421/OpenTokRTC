@@ -16,11 +16,10 @@ Room.prototype = {
     var self = this;
     window.onresize = self.layout;
     $("#chatButton").click(function(){
-      var startX = $(window).width()-10-$("#chattr").width();
-      var startY = $(window).height()-56-$("#chattr").height();
-      $("#chattr").css("left",startX);
-      $("#chattr").css("top", startY);
-      $("#chattr").toggle();
+      var rightValue = $("#chattr").css("right") == "-300px" ? "0px" : "-300px";
+      $('#chattr').css('right', rightValue);
+      var containerRightValue = $('.container').css("right") == "0px" ? "300px" : "0px";
+      $('.container').css('right', containerRightValue);
       self.unseenCount = 0;
       $("#chatButton").addClass("no-after");
     });

@@ -243,6 +243,18 @@ body {
     height: 100%;
     transition: all 0.5s;
     -webkit-transition: all 0.5s; }
+  body .container.chatEnabled {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 300px;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    width: auto;
+    height: 100%;
+    transition: all 0.5s;
+    -webkit-transition: all 0.5s; }
   body #streams_container {
     position: absolute;
     top: 0px;

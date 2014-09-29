@@ -102,14 +102,6 @@ OpenTokChattr.prototype = {
     $(".inner-chat").animate({scrollTop: $(".inner-chat")[0].scrollHeight},1000);
     if(this.options){
       if(this.options.closeable){
-        $("#chattr .chat-header .btn-close").click(this.options.closeable);
-      } else{
-        $("#chattr .chat-header .btn-close").hide();
-      }
-      if(this.options.draggable){
-        $("#chattr").udraggable({
-          handle: "#chat_header",
-        });
       }
     }
   },

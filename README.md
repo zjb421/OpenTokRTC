@@ -1,5 +1,7 @@
 # WebRTC Demo
 
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/heroku/node-js-sample)
+
 ## File Overview
 * `Procfile` is required to run the nodejs app on Heroku
 * `package.json` contains all npm modules to run the app

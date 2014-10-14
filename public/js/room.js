@@ -25,6 +25,9 @@ Room.prototype = {
       self.unseenCount = 0;
       $("#chatButton").addClass("no-after");
     });
+    $('#chatInput').keyup(function(e){
+      if(e.keyCode == 27){$('#chatButton').trigger('click');}
+    });
     $("#recordButton").click(function(){
       $(this).toggleClass("selected");
       var actionVerb, nextAction;

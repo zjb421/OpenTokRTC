@@ -36,6 +36,8 @@ OpenTokChattr.prototype = {
     _this.templates.userList = $('#chattrUserListTpl').html();
     _this.templates.help = $('#chattrHelpTpl').html();
     _this.templates.nameExists = $('#chattrNameExistsTpl').html();
+    _this.templates.focus = $('#chattrFocusTpl').html();
+    _this.templates.unfocus = $('#chattrUnfocusTpl').html();
   },
   initOpenTok: function(){
     _this.session.on({
@@ -74,6 +76,20 @@ OpenTokChattr.prototype = {
               _this.initialized = true;
             }
             break;
+          case "signal:focus":
+            _this.printMessage({
+              type: "focus",
+              data: signalData
+            });
+            room.focus(signalData.connectionId);
+            break;
+          case "signal:unfocus":
+            _this.printMessage({
+              type: "unfocus",
+              data: signalData
+            });
+            room.unfocus();
+            break;
         }
       },
       connectionCreated: function(event){
@@ -111,9 +127,19 @@ OpenTokChattr.prototype = {
     }
   },
   sendSignal:function(type, data, to){
-     var signalData = {type: type,data: JSON.stringify(data)};
-     if(to)
-      signalData.to=to;
+    var signalData = {
+      type: type
+    };
+
+    if (data) {
+      signalData.data = JSON.stringify(data);
+    } else {
+      signalData.data = "{}";
+    }
+    if (to) {
+     signalData.to=to;
+    }
+
     _this.session.signal(signalData,_this.signalError);
   },
   setName:function(name){
@@ -166,6 +192,13 @@ OpenTokChattr.prototype = {
           _this.appendToMessages('update', tmplData);
         }
         break;
+      case "focus":
+        tmplData.nick = _this.getNickname(data.connectionId);
+        _this.appendToMessages('focus', tmplData);
+        break;
+      case "unfocus":
+        _this.appendToMessages('unfocus', tmplData);
+        break;
     }
     $("#messages").append(html);
     $(".inner-chat").scrollTop($(".inner-chat")[0].scrollHeight)
@@ -193,6 +226,12 @@ OpenTokChattr.prototype = {
         break;
       case "/list":
         _this.sendListSignal();
+        break;
+      case "/focus":
+        _this.sendFocusSignal();
+        break;
+      case "/unfocus":
+        _this.sendUnfocusSignal();
         break;
       default:
         _this.sendChat(text);
@@ -243,6 +282,19 @@ OpenTokChattr.prototype = {
     }
     var tpl = Handlebars.compile(_this.templates.userList);
     _this.sendSelfUpdate(tpl(data));
+  },
+  sendFocusSignal: function() {
+    if (_this.initialized && room.initialized && room.myStream) {
+      _this.sendSignal("focus", {
+        connectionId: _this.session.connection.connectionId,
+        streamId: room.myStream.streamId
+      });
+    }
+  },
+  sendUnfocusSignal: function() {
+    if (_this.initialized && room.initialized) {
+      _this.sendSignal("unfocus");
+    }
   },
   getNickname: function(connectionId){
     return _this.users[connectionId] || _this._defaultNickname(connectionId);

@@ -4,6 +4,10 @@ function Room(roomId, session, token, chattr){
   this.token = token;
   this.chattr = chattr;
   this.filterData = {};
+  this.subscribers = {};
+  this.myStream = undefined;
+  this.publisher = undefined;
+  this.focussedConnectionId = undefined;
   this.unseenCount = 0;
   this.initialized = false;
   this.recording = false;
@@ -55,8 +59,15 @@ Room.prototype = {
     var _this = this;
     var session = this.session;
     session.connect(this.token, function(error){
-      var publisher = OT.initPublisher( "<%= apiKey %>", "myPublisher", {width:"100%", height:"100%"} );
-      session.publish( publisher );
+      _this.publisher = OT.initPublisher( "<%= apiKey %>", "myPublisher", {width:"100%", height:"100%"} );
+      _this.publisher.on('streamDestroyed', function() {
+        _this.publisher = undefined;
+        _this.myStream = undefined;
+      });
+      session.publish( _this.publisher, function(err) {
+        if (err) return console.log('publishing error');
+        _this.myStream = _this.publisher.stream;
+      });
       setTimeout(function(){_this.initialized = true;}, 2000);
     });
     session.on("sessionDisconnected", function(event){
@@ -70,8 +81,10 @@ Room.prototype = {
       var divId = "stream" + streamConnectionId;
       $("#streams_container").append(
          _this.userStreamTemplate({ id: divId, connectionId: streamConnectionId }) );
-      var subscribers = [];
-      subscribers[ streamConnectionId ] = session.subscribe( event.stream, divId , {width:"100%", height:"100%"} );
+      _this.subscribers[ streamConnectionId ] = session.subscribe( event.stream, divId , {width:"100%", height:"100%"} );
+      _this.subscribers[streamConnectionId].on('destroyed', function(event) {
+        delete _this.subscribers[streamConnectionId];
+      });
       var divId$ = $("."+divId);
       divId$.mouseenter(function(){
         $(this).find('.flagUser').show();
@@ -89,10 +102,15 @@ Room.prototype = {
         }
       }); 
 
+      // TODO: might not be needed
+      _this.applyFocus();
       _this.layout();
     });
     session.on("streamDestroyed", function(event){
       _this.removeStream(event.stream.connection.connectionId);
+
+      // TODO: might not be needed
+      _this.applyFocus();
       _this.layout();
     });
     session.on("connectionCreated", function(event){
@@ -100,6 +118,9 @@ Room.prototype = {
         var dataToSend = {"filterData": _this.filterData};
         if(_this.archiveId && $(".controlOption[data-activity=record]").hasClass("selected")){
           dataToSend.archiveId = _this.archiveId;
+        }
+        if (_this.focussedConnectionId) {
+          dataToSend.focussedConnectionId = _this.focussedConnectionId;
         }
         _this.sendSignal("initialize", dataToSend, event.connection);
       }
@@ -116,6 +137,11 @@ Room.prototype = {
               $(".controlOption[data-activity=record]").addClass('selected');
               $("#recordButton").data('tooltip').options.title="Stop Recording";
             }
+
+            if (data.focussedConnectionId) {
+              _this.focus(data.focussedConnectionId);
+            }
+
             _this.initialized = true;
           }
           break;
@@ -207,6 +233,78 @@ Room.prototype = {
       $(selector).removeClass( "Blur Sepia Grayscale Invert" );
       $(selector).addClass( prop );
     }
+  },
+
+  applyFocus: function() {
+    var self = this;
+    var focussedStreamContainer, focussedWidget;
+
+    if (this.focussedConnectionId) {
+
+      if (this.focussedConnectionId === this.session.connection.connectionId) {
+        focussedStreamContainer = $('#myPublisherContainer');
+        focussedWidget = this.publisher;
+      } else {
+        focussedStreamContainer = $('#stream'+this.focussedConnectionId).parent();
+        focussedWidget = this.subscribers[this.focussedConnectionId];
+      }
+
+      // if the stream to focus on already has class 'OT_big', we assume its already been focussed
+      if (focussedStreamContainer.length === 1 && !focussedStreamContainer.hasClass('OT_big')) {
+
+        focussedStreamContainer.addClass('OT_big');
+        if (focussedWidget instanceof OT.Subscriber) {
+          focussedWidget.restrictFrameRate(false);
+        }
+      }
+
+      $('.streamContainer').not(focussedStreamContainer).removeClass('OT_big').each(function() {
+        // `this` refers to the iterated element
+        // call restrictFrameRate() on each subscriber
+        var connectionId = findConnectionIdFromElement(this);
+        // if there was no connectionId found, assume the element contains the publisher and skip
+        if (connectionId) {
+          var subscriber = self.subscribers[connectionId];
+          if (!subscriber) {
+            return console.error('cannot find subscriber for element:', this);
+          }
+          subscriber.restrictFrameRate(true);
+        }
+      });
+
+    } else {
+
+      $('.streamContainer').removeClass('OT_big');
+      for (var connectionId in this.subscribers) {
+        if (this.subscribers.hasOwnProperty(connectionId)) {
+          this.subscribers[connectionId].restrictFrameRate(false);
+        }
+      }
+
+    }
+  },
+
+  focus: function(connectionId) {
+    this.focussedConnectionId = connectionId;
+    this.applyFocus();
+    this.layout();
+  },
+  unfocus: function() {
+    this.focussedConnectionId = undefined;
+    this.applyFocus();
+    this.layout();
   }
 
-}
+};
+
+var findConnectionIdFromElement = function(el) {
+  var className;
+  for (var i = 0; i < el.classList.length; i++) {
+    className = el.classList[i];
+    if (className !== 'streamContainer' && className.indexOf('stream') === 0) {
+      return className.substr(6);
+    }
+  }
+  return undefined;
+};
+

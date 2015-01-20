@@ -89,10 +89,22 @@
 <script id="chattrHelpTpl" type="text/x-handlebars-template">
   <p>Type <span>/name your_name</span> to change your display name</p> 
   <p>Type <span>/list</span> to see a list of users in the room</p> 
+  <p>Type <span>/focus</span> to focus the room on yourself</p>
+  <p>Type <span>/unfocus</span> to take focus away from any focussed people in the room</p>
   <p class='last'>Type <span>/help</span> to see a list of commands</p>
 </script>
 <script id="chattrNameExistsTpl" type="text/x-handlebars-template">
   <p>User <span>{{newName}}</span> already exists. Please choose another name.</p>
+</script>
+<script id="chattrFocusTpl" type="text/x-handlebars-template">
+  <li class="status">
+    <p>User <span>{{nick}}</span> now has focus.</p>
+  </li>
+</script>
+<script id="chattrUnfocusTpl" type="text/x-handlebars-template">
+  <li class="status">
+    <p>Focus has been removed.</p>
+  </li>
 </script>
 
 

@@ -138,6 +138,21 @@ h1, h2, h3, h4, h5, h6, p {
         background-image: url("../img/img-archiving_hover-icon.png"); }
       #controlsContainer .controlsBody .optionContainer #recordButton.selected {
         background-image: url("../img/img-archiving_active-icon.png"); }
+#controlsContainer .controlsBody .optionContainer #screensharingButton {
+    background-image: url("../img/img-screensharing_normal-icon.png");
+    width: 27px;
+    height: 27px;
+    right: 85px; }
+#controlsContainer .controlsBody .optionContainer #screensharingButton:hover {
+    background-image: url("../img/img-screensharing_hover-icon.png");
+    width: 27px;
+    height: 27px;
+    right: 85px; }
+#controlsContainer .controlsBody .optionContainer #screensharingButton.selected {
+    background-image: url("../img/img-screensharing_active-icon.png");
+    width: 27px;
+    height: 27px;
+    right: 85px; }
     #controlsContainer .controlsBody .optionContainer #roomLinkButton {
       background-image: url("../img/img-link_normal-icon.png");
       width: 28px;

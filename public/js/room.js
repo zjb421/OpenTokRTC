@@ -46,6 +46,20 @@ Room.prototype = {
       }
       $("#recordButton").data('tooltip').options.title=nextAction+" Recording";
     });
+     $("#screensharingButton").click(function(){
+       $(this).toggleClass("selected");
+       var actionVerb, nextAction;
+       if($(this).hasClass("selected")){
+         self.triggerActivity("share","start sharing");
+         actionVerb = "sharing";
+         nextAction = "Stop";
+       } else{
+           self.triggerActivity("share","stop sharing");
+           actionVerb = "stopped sharing";
+           nextAction = "Start";
+       }
+       $("#screensharingButton").data('tooltip').options.title=nextAction+" Sharing";
+     });
     $(document.body).on("click","#filtersList li button",function(){
       $("#filtersList li button").removeClass("selected");
       var prop = $(this).data('value');
@@ -209,6 +223,51 @@ Room.prototype = {
           }
         });
         break;
+      case "share":          
+        //we use qa extension for now, everyone should install the extension to enable screensharing
+        OT.registerScreenSharingExtension('chrome', 'bkmjlibbehokjkdocekdggbecccplape');
+        OT.checkScreenSharingCapability(function(response) {
+          console.log('checkScreenSharingCapability', response);
+          if(location.protocol == "http:"){
+            alert("Screensharing only works under 'https', please add 'https://' in front of your opentokRTC url.");
+          }
+          else{
+            if(!response.supported || response.extensionRegistered === false) {
+              alert("This browser does not support screen sharing! Please test with Chrome or Firefox!");
+            } 
+            else if(response.extensionInstalled === false) {
+              var newWindow = window.open("https://chrome.google.com/webstore/detail/opentok-screen-sharing-qa/bkmjlibbehokjkdocekdggbecccplape/related", 'popup', 'height=400, width = 500');
+              if(window.focus){
+                newWindow.focus();
+                return false;
+              }
+            } 
+            else {
+              // Screen sharing is available
+              if (response.supportedSources.window || response.supportedSources.application || response.supportedSources.browser) {
+                // Show the prompt to share a window
+                console.log("screensharing 0.");
+              } 
+              else if(response.supportedSources.screen) {
+                console.log("share window available.");
+                // We'll accept a screen instead
+              } 
+              else {
+                var whatIsSupported = Object.keys(response.supportedSources).filter(function(source) {
+                    return response.supportedSources[source];
+                });
+              }
+            }
+          }
+        });
+        var screensharingPublisher = OT.initPublisher( "<%= apiKey %>", "screensharingPublisher", {width:"100%", height:"100%"}, {videoSource: 'screen'}, function(err){
+          if(err){
+            alert("Screenahring has error: " + err);
+          }
+        });
+        session.publish( screensharingPublisher, function(err) {
+        if (err) return console.log('publishing error: ' + err);
+      });
     }
   },
   sendSignal: function( type, data, to ){

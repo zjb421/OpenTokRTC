@@ -12,9 +12,9 @@ var express    = require('express'),
 // ***
 // *** OpenTok Constants for creating Session and Token values
 // ***
-var OTKEY = config.opentok.key;
-var ot = new opentok(config.opentok.key, config.opentok.secret);
 
+OTKEY = config.opentok.key;
+var ot = new opentok(config.opentok.key, config.opentok.secret);
 // ***
 // *** Setup Express to handle static files in public folder
 // *** Express is also great for handling url routing

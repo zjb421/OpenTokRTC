@@ -14,6 +14,8 @@ function Room(roomId, session, token, chattr){
   this.initOT();
   this.init();
 }
+var extensionInstalled = true;
+
 Room.prototype = {
   constructor: Room,
   init: function(){
@@ -59,7 +61,10 @@ Room.prototype = {
            nextAction = "Start";
        }
        $("#screensharingButton").data('tooltip').options.title=nextAction+" Sharing";
+       //if()
      });
+    $("#installScreenshareExtension").hide();
+    $("#screensharingPublisher").hide();
     $(document.body).on("click","#filtersList li button",function(){
       $("#filtersList li button").removeClass("selected");
       var prop = $(this).data('value');
@@ -72,15 +77,20 @@ Room.prototype = {
   initOT: function(){
     var _this = this;
     var session = this.session;
+    OT.setLogLevel(OT.DEBUG);
     session.connect(this.token, function(error){
       _this.publisher = OT.initPublisher( "<%= apiKey %>", "myPublisher", {width:"100%", height:"100%"} );
       _this.publisher.on('streamDestroyed', function() {
         _this.publisher = undefined;
         _this.myStream = undefined;
+        $("#streams_container").css("width","25%");
+        $("#screensharing_container").css("width","75%").css("left","25%");
       });
       session.publish( _this.publisher, function(err) {
         if (err) return console.log('publishing error');
         _this.myStream = _this.publisher.stream;
+        $("#streams_container").css("width","25%");
+        $("#screensharing_container").css("width","75%").css("left","25%");
       });
       setTimeout(function(){_this.initialized = true;}, 2000);
     });
@@ -90,14 +100,23 @@ Room.prototype = {
       window.location = "/";
     });
     session.on("streamCreated", function(event){
-      var streamConnectionId = event.stream.connection.connectionId;
+      var streamId = event.stream.streamId,
+          streamConnectionId = event.stream.connection.connectionId;
       // create new div container for stream, subscribe, apply filter
-      var divId = "stream" + streamConnectionId;
-      $("#streams_container").append(
-         _this.userStreamTemplate({ id: divId, connectionId: streamConnectionId }) );
-      _this.subscribers[ streamConnectionId ] = session.subscribe( event.stream, divId , {width:"100%", height:"100%"} );
-      _this.subscribers[streamConnectionId].on('destroyed', function(event) {
-        delete _this.subscribers[streamConnectionId];
+      var divId = "stream" + streamConnectionId,
+          subscriberDiv = $(_this.userStreamTemplate({ id: divId, connectionId: streamId })).first()[0];
+      _this.subscribers[ streamId ] = session.subscribe( event.stream, subscriberDiv , {width:"100%", height:"100%"} );
+      var videoType =_this.subscribers[ streamId ].stream.videoType;
+      if(videoType == "camera" ){
+          $("#streams_container").append(subscriberDiv);
+      }
+        else{
+          $("#screensharing_container").append(subscriberDiv);
+          $("#streams_container").css("width","25%");
+          $("#screensharing_container").css("width","75%").css("left","25%");
+      }
+      _this.subscribers[streamId].on('destroyed', function(event) {
+      delete _this.subscribers[streamId];
       });
       var divId$ = $("."+divId);
       divId$.mouseenter(function(){
@@ -184,21 +203,30 @@ Room.prototype = {
         case "signal:chat":
           if(!($("#chatButton").hasClass('selected'))){
             _this.unseenCount+=1;
-            $("#chatButton").attr("data-unseen-count", _this.unseenCount);
-            $("#chatButton").removeClass("no-after");
+            $("#chatButton").attr("data-unseen-count", _this.unseenCount).removeClass("no-after");
           } 
           break;
       }
     });
   },
   layout : OT.initLayoutContainer( document.getElementById( "streams_container"), {
-      fixedRatio: true,
-      animate: true,
-      bigClass: "OT_big",
-      bigPercentage: 0.85,
-      bigFixedRatio: false,
-      easing: "swing"
+    fixedRatio: true,
+    animate: true,
+    bigClass: "OT_big",
+    bigPercentage: 0.85,
+    bigFixedRatio: false,
+    easing: "swing"
     }).layout,
+
+  scrensharingLayout : OT.initLayoutContainer( document.getElementById( "screensharing_container"), {
+    fixedRatio: true,
+    animate: true,
+    bigClass: "OT_big",
+    bigPercentage: 0.85,
+    bigFixedRatio: false,
+    easing: "swing"
+    }).layout,
+
   removeStream : function(cid){
     $(".stream"+cid).remove();
   },
@@ -224,8 +252,10 @@ Room.prototype = {
         });
         break;
       case "share":          
-        //we use qa extension for now, everyone should install the extension to enable screensharing
-        OT.registerScreenSharingExtension('chrome', 'bkmjlibbehokjkdocekdggbecccplape');
+        //This official opentokrtc extension
+        OT.registerScreenSharingExtension('chrome', 'cdcpamnalbffhgpgiladncocnmolhbpg');
+        //we use qa extension for now before the official screenshairng
+        //OT.registerScreenSharingExtension('chrome', 'bkmjlibbehokjkdocekdggbecccplape');
         OT.checkScreenSharingCapability(function(response) {
           console.log('checkScreenSharingCapability', response);
           if(location.protocol == "http:"){
@@ -236,11 +266,13 @@ Room.prototype = {
               alert("This browser does not support screen sharing! Please test with Chrome or Firefox!");
             } 
             else if(response.extensionInstalled === false) {
-              var newWindow = window.open("https://chrome.google.com/webstore/detail/opentok-screen-sharing-qa/bkmjlibbehokjkdocekdggbecccplape/related", 'popup', 'height=400, width = 500');
-              if(window.focus){
-                newWindow.focus();
-                return false;
-              }
+               //var newWindow = window.open("https://chrome.google.com/webstore/detail/opentok-screen-sharing-qa/bkmjlibbehokjkdocekdggbecccplape/related", 'popup', 'height=400, width = 500');
+              //if(window.focus){
+              //  newWindow.focus();
+              //  return false;
+              //}
+                //alert("https://chrome.google.com/webstore/detail/opentok-screen-sharing-qa/cdcpamnalbffhgpgiladncocnmolhbpg/related");
+                extensionInstalled = false;
             } 
             else {
               // Screen sharing is available
@@ -259,15 +291,31 @@ Room.prototype = {
               }
             }
           }
-        });
-        var screensharingPublisher = OT.initPublisher( "<%= apiKey %>", "screensharingPublisher", {width:"100%", height:"100%"}, {videoSource: 'screen'}, function(err){
-          if(err){
-            alert("Screenahring has error: " + err);
+          if(extensionInstalled == true){
+              $("#installScreenshareExtension").hide();
+              var screensharingPublisher = OT.initPublisher( "<%= apiKey %>", "screensharingPublisher", {width:"100%", height:"100%", videoSource: 'screen'}, function(err){
+                  if(err){
+                      alert("Screenahring has error: " + JSON.stringify(err));
+                  }
+              });
+              screensharingPublisher.on('mediaStopped', function(event) {
+                  $("#streams_container").css("width","100%");
+                  $("#screensharing_container").css("width","0%").css("left","0%");
+              });
+              screensharingPublisher.on("streamDestroyed", function(event){
+                  $("#streams_container").css("width","100%");
+                  $("#screensharing_container").css("width","0%").css("left","0%");
+              });
+              $("#screensharingPublisher").show();
+              session.publish( screensharingPublisher, function(err) {
+                  console.log('screensharing publisher published!');
+                  if (err) return console.log('publishing error: ' + err);
+              });
+          }
+          else{
+              $("#installScreenshareExtension").show();
           }
         });
-        session.publish( screensharingPublisher, function(err) {
-        if (err) return console.log('publishing error: ' + err);
-      });
     }
   },
   sendSignal: function( type, data, to ){
@@ -343,6 +391,8 @@ Room.prototype = {
     }
   },
 
+
+
   focus: function(connectionId) {
     this.focussedConnectionId = connectionId;
     this.applyFocus();
@@ -355,6 +405,15 @@ Room.prototype = {
   }
 
 };
+
+$("#installScreenshareExtension").click(function(){
+    //QA extension: bkmjlibbehokjkdocekdggbecccplape
+    chrome.webstore.install('https://chrome.google.com/webstore/detail/cdcpamnalbffhgpgiladncocnmolhbpg', function () {
+        console.log('successfully installed');
+    }, function () {
+        console.error('failed to install');
+    });
+})
 
 var findConnectionIdFromElement = function(el) {
   var className;
